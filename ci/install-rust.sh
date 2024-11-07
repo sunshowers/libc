@@ -10,6 +10,13 @@ if [ -n "$TOOLCHAIN" ]; then
 else
   toolchain=nightly
 fi
+
+if [ "$INSTALL_RUSTUP" = "1" ]; then
+  echo "Install rustup"
+  curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain "$toolchain"
+  source "$HOME/.cargo/env"
+fi
+
 if [ "$OS" = "windows" ]; then
   : "${TARGET?The TARGET environment variable must be set.}"
   rustup set profile minimal
