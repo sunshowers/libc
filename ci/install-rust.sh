@@ -10,6 +10,39 @@ if [ -n "$TOOLCHAIN" ]; then
 else
   toolchain=nightly
 fi
+
+if [ "$INSTALL_RUSTUP" = "1" ]; then
+  echo "Install rustup"
+
+  # If the CI system already has Rust installed, we'll override that
+  # installation via sourcing ~/.cargo/env.
+  export RUSTUP_INIT_SKIP_PATH_CHECK=yes
+  curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain none
+  . "$HOME/.cargo/env"
+
+  # It is possible that "$HOME/.cargo/bin" was already in the PATH, in which
+  # case the above source would not have any effect. If the directory wasn't
+  # present on disk, then some shells negatively cache the PATH lookup and not
+  # find the directory even after it is created. To work around this, force a
+  # change to the PATH.
+  #
+  # This is a more portable version of `hash -r`. `hash -r` is part of the POSIX
+  # spec [1] but may not be available in all shells. The manual suggests the
+  # following, more portable option:
+  #
+  #    PATH="$PATH"
+  #
+  # But empirically, that has been observed to not invalidate the cache in some
+  # shells. Actually making a change to the PATH should always work (hopefully!)
+  #
+  # [1] https://pubs.opengroup.org/onlinepubs/9799919799/utilities/hash.html
+
+  # First, add a trailing colon.
+  PATH="$PATH:"
+  # Then, remove it.
+  PATH="${PATH%:}"
+fi
+
 if [ "$OS" = "windows" ]; then
   : "${TARGET?The TARGET environment variable must be set.}"
   rustup set profile minimal
