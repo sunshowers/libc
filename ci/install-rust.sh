@@ -10,6 +10,19 @@ if [ -n "$TOOLCHAIN" ]; then
 else
   toolchain=nightly
 fi
+
+if [ "$INSTALL_RUSTUP" = "1" ]; then
+  echo "Install rustup"
+
+  # If the CI system already has Rust installed, we'll override that
+  # installation via sourcing ~/.cargo/env.
+  export RUSTUP_INIT_SKIP_PATH_CHECK=yes
+  curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain none
+  echo "Path before: $PATH"
+  . "$HOME/.cargo/env"
+  echo "Path after: $PATH"
+fi
+
 if [ "$OS" = "windows" ]; then
   : "${TARGET?The TARGET environment variable must be set.}"
   rustup set profile minimal
